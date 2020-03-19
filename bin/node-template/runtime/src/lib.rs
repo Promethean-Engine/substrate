@@ -167,6 +167,7 @@ impl system::Trait for Runtime {
 	type OnKilledAccount = ();
 	/// The data to be stored in an account.
 	type AccountData = balances::AccountData<Balance>;
+	type RootDispatcher = system::Module<Self>;
 }
 
 impl aura::Trait for Runtime {
@@ -219,6 +220,7 @@ impl transaction_payment::Trait for Runtime {
 impl sudo::Trait for Runtime {
 	type Event = Event;
 	type Call = Call;
+	type Dispatcher = <Self as system::Trait>::RootDispatcher;
 }
 
 /// Used for the module template in `./template.rs`
@@ -269,7 +271,7 @@ pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signatu
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
-pub type Executive = frame_executive::Executive<Runtime, Block, system::ChainContext<Runtime>, Runtime, AllModules>;
+pub type Executive = frame_executive::Executive<Runtime, Block, system::ChainContext<Runtime>, Runtime, AllModules, <Runtime as system::Trait>::RootDispatcher>;
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {

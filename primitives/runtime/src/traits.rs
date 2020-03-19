@@ -888,7 +888,7 @@ impl SignedExtension for () {
 /// each piece of attributable information to be disambiguated.
 pub trait Applyable: Sized + Send + Sync {
 	/// Type by which we can dispatch. Restricts the `UnsignedValidator` type.
-	type Call;
+	type Call: Dispatchable;
 
 	/// An opaque set of information attached to the transaction.
 	type DispatchInfo: Clone;
@@ -902,11 +902,77 @@ pub trait Applyable: Sized + Send + Sync {
 
 	/// Executes all necessary logic needed prior to dispatch and deconstructs into function call,
 	/// index and sender.
-	fn apply<V: ValidateUnsigned<Call=Self::Call>>(
+	fn apply<
+		V: ValidateUnsigned<Call = Self::Call>,
+		D: Dispatcher<Self::Call, <Self::Call as Dispatchable>::Origin>,
+	>(
 		self,
 		info: Self::DispatchInfo,
 		len: usize,
 	) -> crate::ApplyExtrinsicResult;
+}
+
+#[derive(Clone, Copy)]
+pub struct Unconstructable {
+	unconstructable: ()
+}
+
+impl Unconstructable {
+	fn new() -> Self {
+		Self {
+			unconstructable: (),
+		}
+	}
+}
+
+pub trait Dispatcher<D, O> {
+	type RootDispatcher: RootDispatcher<D, O>;
+	type Pre;
+
+	fn pre_dispatch(dispatchable: &D, origin: &O, token: Unconstructable) -> Result<Self::Pre, crate::DispatchError>;
+
+	fn post_dispatch(pre: Self::Pre, dispatch_result: &crate::DispatchResult, token: Unconstructable);
+
+	fn dispatch(dispatchable: D, origin: O) -> crate::DispatchResult {
+		let token = Unconstructable::new();
+		match Self::pre_dispatch(&dispatchable, &origin, token) {
+			Ok(pre) => {
+				let result = <Self::RootDispatcher as RootDispatcher<D, O>>::dispatch(dispatchable, origin);
+				Self::post_dispatch(pre, &result, token);
+				result
+			},
+			Err(err) => Err(err),
+		}
+	}
+}
+
+pub trait RootDispatcher<D, O> {
+	fn raw_dispatch(dispatchable: D, origin: O) -> crate::DispatchResult where
+		D: Dispatchable<Origin = O>
+	{
+		dispatchable.dispatch(origin)
+	}
+
+	fn dispatch(dispatchable: D, origin: O) -> crate::DispatchResult;
+}
+
+impl<D, O> RootDispatcher<D, O> for () {
+	fn dispatch(_: D, _: O) -> crate::DispatchResult {
+		panic!("Using the dummy dispatcher for actual dispatch is a programming error.")
+	}
+}
+
+impl<D, O, T> Dispatcher<D, O> for T where
+	T: RootDispatcher<D, O>
+{
+	type RootDispatcher = T;
+	type Pre = ();
+
+	fn pre_dispatch(_: &D, _: &O, _: Unconstructable) -> Result<Self::Pre, crate::DispatchError> {
+		Ok(())
+	}
+
+	fn post_dispatch(_: Self::Pre, _: &crate::DispatchResult, _: Unconstructable) {}
 }
 
 /// A marker trait for something that knows the type of the runtime block.

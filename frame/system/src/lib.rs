@@ -108,6 +108,7 @@ use sp_runtime::{
 		self, CheckEqual, AtLeast32Bit, Zero, SignedExtension, Lookup, LookupError,
 		SimpleBitOps, Hash, Member, MaybeDisplay, EnsureOrigin, BadOrigin, SaturatedConversion,
 		MaybeSerialize, MaybeSerializeDeserialize, MaybeMallocSizeOf, StaticLookup, One, Bounded,
+		Dispatchable, RootDispatcher,
 	},
 };
 
@@ -225,6 +226,21 @@ pub trait Trait: 'static + Eq + Clone {
 
 	/// Migrate an account.
 	type MigrateAccount: MigrateAccount<Self::AccountId>;
+
+	/// The central instance that dispatches all calls.
+	///
+	/// The `RootDispatcher` is the central dispatcher and all other dispatchers should
+	/// eventually delegate to it. The default runtime uses the `RootDispatcher` for all
+	/// modules that do dispatching themselves.
+	///
+	/// However, a runtime implementer can choose to provide a custom dispatcher to some
+	/// of the modules that is different from the `MainDispatcher´. When doing this it is
+	/// important to delegate to the `RootDispatcher`. There might be use cases where the
+	/// delegation is unwanted and the custom dispatcher dispatches the `Dispatchable`
+	/// itself. It is important to understand that by doing this the dispatch becomes
+	/// invisible to the rest of the runtime machinery which relies on the `RootDispatcher`
+	/// bookkeeping.
+	type RootDispatcher: RootDispatcher<Self::Call, Self::Origin>;
 }
 
 pub type DigestOf<T> = generic::Digest<<T as Trait>::Hash>;
@@ -1039,6 +1055,17 @@ impl<T: Trait> Module<T> {
 	}
 }
 
+impl<T: Trait> sp_runtime::traits::RootDispatcher<T::Call, T::Origin> for Module<T> where
+	T::Call: Dispatchable<Origin = T::Origin>,
+{
+	fn dispatch(
+		dispatchable: T::Call,
+		origin: <T::Call as Dispatchable>::Origin,
+	) -> sp_runtime::DispatchResult {
+		Self::raw_dispatch(dispatchable, origin)
+	}
+}
+
 /// Event handler which calls on_created_account when it happens.
 pub struct CallOnCreatedAccount<T>(PhantomData<T>);
 impl<T: Trait> Happened<T::AccountId> for CallOnCreatedAccount<T> {
@@ -1572,6 +1599,7 @@ mod tests {
 		type AccountData = u32;
 		type MigrateAccount = (); type OnNewAccount = ();
 		type OnKilledAccount = RecordKilled;
+		type RootDispatcher = ();
 	}
 
 	impl From<Event<Test>> for u16 {

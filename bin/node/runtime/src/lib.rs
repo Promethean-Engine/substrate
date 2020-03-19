@@ -143,6 +143,7 @@ impl frame_system::Trait for Runtime {
 	type MigrateAccount = (Balances, Identity, Democracy, Elections, ImOnline, Recovery, Session, Society, Staking, Vesting);
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
+	type RootDispatcher = frame_system::Module<Self>;
 }
 
 parameter_types! {
@@ -160,6 +161,7 @@ impl pallet_utility::Trait for Runtime {
 	type MultisigDepositBase = MultisigDepositBase;
 	type MultisigDepositFactor = MultisigDepositFactor;
 	type MaxSignatories = MaxSignatories;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 }
 
 parameter_types! {
@@ -338,6 +340,7 @@ impl pallet_democracy::Trait for Runtime {
 	type CooloffPeriod = CooloffPeriod;
 	type PreimageByteDeposit = PreimageByteDeposit;
 	type Slash = Treasury;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 }
 
 parameter_types! {
@@ -350,6 +353,7 @@ impl pallet_collective::Trait<CouncilCollective> for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type MotionDuration = CouncilMotionDuration;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 }
 
 parameter_types! {
@@ -385,6 +389,7 @@ impl pallet_collective::Trait<TechnicalCollective> for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type MotionDuration = TechnicalMotionDuration;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 }
 
 impl pallet_membership::Trait<pallet_membership::Instance1> for Runtime {
@@ -444,6 +449,7 @@ impl pallet_contracts::Trait for Runtime {
 	type Event = Event;
 	type DetermineContractAddress = pallet_contracts::SimpleAddressDeterminer<Runtime>;
 	type ComputeDispatchFee = pallet_contracts::DefaultDispatchFeeComputor<Runtime>;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 	type TrieIdGenerator = pallet_contracts::TrieIdFromParentCounter<Runtime>;
 	type GasPayment = ();
 	type RentPayment = ();
@@ -466,6 +472,7 @@ impl pallet_contracts::Trait for Runtime {
 impl pallet_sudo::Trait for Runtime {
 	type Event = Event;
 	type Call = Call;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 }
 
 /// A runtime transaction submitter.
@@ -583,6 +590,7 @@ impl pallet_recovery::Trait for Runtime {
 	type FriendDepositFactor = FriendDepositFactor;
 	type MaxFriends = MaxFriends;
 	type RecoveryDeposit = RecoveryDeposit;
+	type Dispatcher = <Self as frame_system::Trait>::RootDispatcher;
 }
 
 parameter_types! {
@@ -686,7 +694,7 @@ pub type SignedPayload = generic::SignedPayload<Call, SignedExtra>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Call, SignedExtra>;
 /// Executive: handles dispatch to the various modules.
-pub type Executive = frame_executive::Executive<Runtime, Block, frame_system::ChainContext<Runtime>, Runtime, AllModules>;
+pub type Executive = frame_executive::Executive<Runtime, Block, frame_system::ChainContext<Runtime>, Runtime, AllModules, <Runtime as frame_system::Trait>::RootDispatcher>;
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
