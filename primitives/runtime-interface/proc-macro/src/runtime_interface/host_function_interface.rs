@@ -44,14 +44,14 @@ use std::iter::{Iterator, self};
 pub fn generate(trait_def: &ItemTrait, is_wasm_only: bool) -> Result<TokenStream> {
 	let trait_name = &trait_def.ident;
 	let extern_host_function_impls = get_runtime_interface(trait_def)?
-		.all_versions()
+		.latest_versions()
 		.try_fold(TokenStream::new(), |mut t, (version, method)| {
 			t.extend(generate_extern_host_function(method, version, trait_name)?);
 			Ok::<_, Error>(t)
 		})?;
 	let exchangeable_host_functions = get_runtime_interface(trait_def)?
 		.latest_versions()
-		.try_fold(TokenStream::new(), |mut t, m| {
+		.try_fold(TokenStream::new(), |mut t, (_, m)| {
 			t.extend(generate_exchangeable_host_function(m)?);
 			Ok::<_, Error>(t)
 		})?;

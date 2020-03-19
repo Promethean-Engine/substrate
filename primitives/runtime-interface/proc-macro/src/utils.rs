@@ -49,9 +49,12 @@ impl<'a> RuntimeInterfaceItem<'a> {
 		}
 	}
 
-	pub fn latest_version(&self) -> &TraitItemMethod {
-		self.versions.get(&self.latest_version)
-			.expect("If latest_version has a value, the key with this value is in the versions")
+	pub fn latest_version(&self) -> (u32, &TraitItemMethod) {
+		(
+			self.latest_version,
+			self.versions.get(&self.latest_version)
+				.expect("If latest_version has a value, the key with this value is in the versions")
+		)
 	}
 }
 
@@ -60,7 +63,7 @@ pub struct RuntimeInterface<'a> {
 }
 
 impl<'a> RuntimeInterface<'a> {
-	pub fn latest_versions(&self) -> impl Iterator<Item = &TraitItemMethod> {
+	pub fn latest_versions(&self) -> impl Iterator<Item = (u32, &TraitItemMethod)> {
 		self.items.iter().map(|(_, item)| item.latest_version())
 	}
 
@@ -245,8 +248,11 @@ pub fn get_runtime_interface<'a>(trait_def: &'a ItemTrait)
 
 		result
 			.entry(name.clone())
-			// TODO: duplciate versions!
-			.and_modify(|interface_item| { interface_item.versions.insert(version, item); })
+			// TODO: duplciate versions!?
+			.and_modify(|interface_item| {
+				if interface_item.latest_version < version { interface_item.latest_version = version; }
+				interface_item.versions.insert(version, item);
+			})
 			.or_insert_with(|| RuntimeInterfaceItem::new(version, item));
 	}
 

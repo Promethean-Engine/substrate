@@ -137,7 +137,7 @@ fn declare_essential_trait(trait_def: &ItemTrait) -> Result<TokenStream> {
 
 	let interface = get_runtime_interface(trait_def)?;
 	let mut folder = ToEssentialTraitDef::new();
-	for interface_method in interface.latest_versions() {
+	for (_, interface_method) in interface.latest_versions() {
 		folder.process(interface_method);
 	}
 	let methods = folder.into_methods()?;
@@ -156,7 +156,7 @@ fn impl_trait_for_externalities(trait_def: &ItemTrait, is_wasm_only: bool) -> Re
 	let trait_ = &trait_def.ident;
 	let crate_ = generate_crate_access();
 	let interface = get_runtime_interface(trait_def)?;
-	let methods = interface.latest_versions().map(|method| {
+	let methods = interface.latest_versions().map(|(_, method)| {
 		let mut cloned = method.clone();
 		cloned.attrs.retain(|a| !a.path.is_ident("version"));
 		cloned

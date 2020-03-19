@@ -47,7 +47,7 @@ use std::iter;
 /// of the trait method.
 pub fn generate(trait_def: &ItemTrait, is_wasm_only: bool) -> Result<TokenStream> {
 	let trait_name = &trait_def.ident;
-	get_runtime_interface(trait_def)?.latest_versions().try_fold(TokenStream::new(), |mut t, m| {
+	get_runtime_interface(trait_def)?.latest_versions().try_fold(TokenStream::new(), |mut t, (_, m)| {
 		t.extend(function_for_method(trait_name, m, is_wasm_only)?);
 		Ok(t)
 	})

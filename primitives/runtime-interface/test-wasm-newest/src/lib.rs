@@ -47,9 +47,9 @@ pub fn import_sp_io() {
 }
 
 wasm_export_functions! {
-	fn test_input_transform() {
+	fn test_transform() {
 		let res = test_api::transform(5);
 
-		assert_eq!(10, res);
+		assert_eq!(500, res);
 	}
 }
