@@ -20,7 +20,10 @@
 #![cfg(test)]
 
 use sp_runtime_interface::*;
+
 use sp_runtime_interface_test_wasm::{WASM_BINARY, test_api::HostFunctions};
+use sp_runtime_interface_test_wasm_deprecated::{WASM_BINARY as WASM_BINARY_DEPRECATED, test_api::HostFunctions as HostFunctionsDeprecated};
+
 use sp_wasm_interface::HostFunctions as HostFunctionsT;
 use sc_executor::CallInWasm;
 

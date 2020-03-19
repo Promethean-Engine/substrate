@@ -64,7 +64,7 @@ impl<'a> RuntimeInterface<'a> {
 		self.items.iter().map(|(_, item)| item.latest_version())
 	}
 
-	pub fn _all_versions(&self) -> impl Iterator<Item = (u32, &TraitItemMethod)> {
+	pub fn all_versions(&self) -> impl Iterator<Item = (u32, &TraitItemMethod)> {
 		self.items.iter().flat_map(|(_, item)| item.versions.iter()).map(|(v, i)| (*v, *i))
 	}
  }
@@ -105,12 +105,13 @@ pub fn create_exchangeable_host_function_ident(name: &Ident) -> Ident {
 }
 
 /// Create the host function identifier for the given function name.
-pub fn create_host_function_ident(name: &Ident, trait_name: &Ident) -> Ident {
+pub fn create_host_function_ident(name: &Ident, version: u32, trait_name: &Ident) -> Ident {
 	Ident::new(
 		&format!(
-			"ext_{}_{}_version_1",
+			"ext_{}_{}_version_{}",
 			trait_name.to_string().to_snake_case(),
 			name,
+			version,
 		),
 		Span::call_site(),
 	)

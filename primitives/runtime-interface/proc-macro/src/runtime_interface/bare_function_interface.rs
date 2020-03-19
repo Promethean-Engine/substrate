@@ -78,7 +78,7 @@ fn function_no_std_impl(method: &TraitItemMethod) -> Result<TokenStream> {
 	let args = get_function_arguments(&method.sig);
 	let arg_names = get_function_argument_names(&method.sig);
 	let return_value = &method.sig.output;
-	let attrs = &method.attrs;
+	let attrs = method.attrs.iter().filter(|a| !a.path.is_ident("version"));
 
 	Ok(
 		quote! {
@@ -115,7 +115,7 @@ fn function_std_impl(
 		).take(1),
 	);
 	let return_value = &method.sig.output;
-	let attrs = &method.attrs;
+	let attrs = method.attrs.iter().filter(|a| !a.path.is_ident("version"));
 	// Don't make the function public accessible when this is a wasm only interface.
 	let vis = if is_wasm_only { quote!() } else { quote!(pub) };
 	let call_to_trait = generate_call_to_trait(trait_name, method, is_wasm_only);
