@@ -497,7 +497,7 @@ mod tests {
 		type AccountData = pallet_balances::AccountData<u64>;
 		type MigrateAccount = (); type OnNewAccount = ();
 		type OnKilledAccount = ();
-		type RootDispatcher = ();
+		type RootDispatcher = System;
 	}
 	parameter_types! {
 		pub const ExistentialDeposit: u64 = 1;
@@ -559,7 +559,7 @@ mod tests {
 	);
 	type AllModules = (System, Balances, Custom);
 	type TestXt = sp_runtime::testing::TestXt<Call, SignedExtra>;
-	type Executive = super::Executive<Runtime, Block<TestXt>, ChainContext<Runtime>, Runtime, AllModules, ()>;
+	type Executive = super::Executive<Runtime, Block<TestXt>, ChainContext<Runtime>, Runtime, AllModules, <Runtime as system::Trait>::RootDispatcher>;
 
 	fn extra(nonce: u64, fee: u64) -> SignedExtra {
 		(
