@@ -167,6 +167,7 @@ impl system::Trait for Runtime {
 	type OnKilledAccount = ();
 	/// The data to be stored in an account.
 	type AccountData = balances::AccountData<Balance>;
+	// This is the central place where all calls are dispatched from.
 	type RootDispatcher = system::Module<Self>;
 }
 

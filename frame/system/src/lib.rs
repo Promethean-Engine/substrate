@@ -229,17 +229,10 @@ pub trait Trait: 'static + Eq + Clone {
 
 	/// The central instance that dispatches all calls.
 	///
-	/// The `RootDispatcher` is the central dispatcher and all other dispatchers should
-	/// eventually delegate to it. The default runtime uses the `RootDispatcher` for all
-	/// modules that do dispatching themselves.
-	///
-	/// However, a runtime implementer can choose to provide a custom dispatcher to some
-	/// of the modules that is different from the `MainDispatcher´. When doing this it is
-	/// important to delegate to the `RootDispatcher`. There might be use cases where the
-	/// delegation is unwanted and the custom dispatcher dispatches the `Dispatchable`
-	/// itself. It is important to understand that by doing this the dispatch becomes
-	/// invisible to the rest of the runtime machinery which relies on the `RootDispatcher`
-	/// bookkeeping.
+	/// For `Dispatchable` calls it is usually the responsiblity of the frame_system
+	/// module to function as the root `RootDispatcher`. In order to customize the
+	/// dispatch process for a specific module the `Dispatcher` trait can be implemented
+	/// and supplied to to the respective `Trait`.
 	type RootDispatcher: RootDispatcher<Self::Call, Self::Origin>;
 }
 
